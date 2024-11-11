@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Working Capital Calculator</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #2d3748;
+            min-height: 100vh;
+        }
+
+        .container {
+            min-height: 100vh;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 0.5fr 1fr;
+            gap: 2rem;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .calculator-section {
+            padding: 1.5rem;
+            background: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .explanation-section {
+            background: #f7fafc;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            border-left: 4px solid #4299e1;
+        }
+
+        .chart-section {
+            padding: 1.5rem;
+            background: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #4299e1;
+        }
+
+        button {
+            width: 100%;
+            padding: 0.75rem;
+            background: #4299e1;
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background: #3182ce;
+        }
+
+        .results {
+            margin-top: 1.5rem;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .result-label {
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .result-value {
+            color: #2d3748;
+            font-weight: 500;
+        }
+
+        .explanation {
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .explanation h3 {
+            color: #2d3748;
+            margin-bottom: 1rem;
+        }
+
+        .chart-container {
+            height: 300px;
+            margin-top: 1rem;
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .container {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Working Capital Calculator</h1>
+            <p>Calculate MPBF (Maximum Permissible Bank Finance) and DP (Drawing Power)</p>
+        </div>
+
+        <div class="main-content">
+            <!-- Calculator Section -->
+            <div class="calculator-section">
+                <div class="input-group">
+                    <label for="tca">Total Current Assets (TCA)</label>
+                    <input type="number" id="tca" placeholder="Enter TCA value" required>
+                </div>
+                <div class="input-group">
+                    <label for="ocl">Other Current Liabilities (OCL)</label>
+                    <input type="number" id="ocl" placeholder="Enter OCL value" required>
+                </div>
+                <button id="calculate-btn">Calculate</button>
+                
+                <div class="results">
+                    <div class="result-item">
+                        <span class="result-label">Working Capital Gap</span>
+                        <span class="result-value" id="wcg">-</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Minimum Stipulated NWC</span>
+                        <span class="result-value" id="min-nwc">-</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">MPBF</span>
+                        <span class="result-value" id="mpbf">-</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">DP</span>
+                        <span class="result-value" id="dp">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Explanation Section -->
+            <div class="explanation-section">
+                <div class="explanation" id="explanation">
+                    <h3>Calculation Logic</h3>
+                    <p id="explanation-text">
+                        1. Working Capital Gap (WCG): <strong>WCG = TCA - OCL</strong><br>
+                        2. Minimum Stipulated Net Working Capital (NWC): <strong>NWC = 25% of TCA</strong><br>
+                        3. Maximum Permissible Bank Finance (MPBF): <strong>MPBF = (TCA - NWC) * 0.75</strong><br>
+                        4. Drawing Power (DP): <strong>DP = MPBF</strong>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Chart Section -->
+            <div class="chart-section">
+                <div class="chart-container">
+                    <canvas id="resultsChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const tcaInput = document.getElementById('tca');
+            const oclInput = document.getElementById('ocl');
+            const explanationSection = document.getElementById('explanation');
+            const explanationText = document.getElementById('explanation-text');
+            const resultsChart = document.getElementById('resultsChart').getContext('2d');
+            let chart;
+
+            tcaInput.addEventListener('keydown', handleKeydown);
+            oclInput.addEventListener('keydown', handleKeydown);
+            document.getElementById('calculate-btn').addEventListener('click', calculateResults);
+
+            function handleKeydown(event) {
+                if (event.key === 'Enter') {
+                    calculateResults();
+                }
+            }
+
+            function calculateResults() {
+                const tca = parseFloat(tcaInput.value);
+                const ocl = parseFloat(oclInput.value);
+
+                if (isNaN(tca) || isNaN(ocl)) {
+                    alert('Please enter valid numbers for TCA and OCL.');
+                    return;
+                }
+
+                const wcg = tca - ocl;
+                const minNWC = tca * 0.25;
+                const mpbf = (tca - minNWC) * 0.75;
+                const dp = mpbf;
+
+                document.getElementById("wcg").textContent = wcg.toFixed(2);
+                document.getElementById("min-nwc").textContent = minNWC.toFixed(2);
+                document.getElementById("mpbf").textContent = mpbf.toFixed(2);
+                document.getElementById("dp").textContent = dp.toFixed(2);
+
+                explanationText.innerHTML = `
+                    <strong>Working Capital Gap (WCG):</strong> ${wcg.toFixed(2)}<br>
+                    <strong>Minimum Stipulated NWC:</strong> ${minNWC.toFixed(2)}<br>
+                    <strong>MPBF:</strong> ${mpbf.toFixed(2)}<br>
+                    <strong>DP:</strong> ${dp.toFixed(2)}
+                `;
+
+                if (chart) {
+                    chart.destroy();
+                }
+
+                chart = new Chart(resultsChart, {
+                    type: 'bar',
+                    data: {
+                        labels: ['WCG', 'Min NWC', 'MPBF', 'DP'],
+                        datasets: [{
+                            label: 'Amount in INR',
+                            data: [wcg, minNWC, mpbf, dp],
+                            backgroundColor: ['#4299e1', '#38b2ac', '#ed8936', '#ed64a6'],
+                            borderColor: '#2b6cb0',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return '₹' + value.toLocaleString();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
